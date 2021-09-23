@@ -55,6 +55,7 @@ async function getMediaLink(docId) {
             }).join(';');
 
         var $ = cheerio.load(reqMedia.body);
+        var fileName = $(".uc-name-size").text().split(' (')[0];
         var downloadLink = $('#uc-download-link').attr('href');
         var reqMediaConfirm = await got.get('https://drive.google.com' + downloadLink, {
             headers: {
@@ -64,7 +65,7 @@ async function getMediaLink(docId) {
         var videoSource = reqMediaConfirm.headers.location;
         var thumbResponse = await reqThumbnail;
         var thumbSource = (thumbResponse && thumbResponse.headers && thumbResponse.headers.location) || '';
-        return createSuccessResponse(videoSource, thumbSource);
+        return createSuccessResponse(videoSource, thumbSource, fileName);
     } catch (error) {
         throw ('Error while fetching the media link.' + error);
     }
@@ -77,9 +78,10 @@ function createFailedResponse(status, error) {
     }
 }
 
-function createSuccessResponse(videoSource, thumbSource) {
+function createSuccessResponse(videoSource, thumbSource, fileName) {
     return {
         src: videoSource,
+        filename: fileName,
         thumbnail: thumbSource
     };
 }
